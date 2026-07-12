@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+langchain
+llama-index
+chromadb
+faiss-cpu
+openai
+python-multipart
+python-magic
+pymupdf
+pdfplumber
+pydantic
+pytest
