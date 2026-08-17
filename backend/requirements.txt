@@ -12,3 +12,4 @@ pdfplumber
 pydantic
 pytest
 langchain-text-splitters
+python-dotenv
