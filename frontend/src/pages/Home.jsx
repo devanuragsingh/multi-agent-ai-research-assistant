@@ -16,59 +16,146 @@ function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSend = async (query) => {
-    const text = query.trim();
+    const text = query?.trim();
+
     if (!text || isLoading) return;
 
-    setMessages((items) => [...items, { id: crypto.randomUUID(), role: "user", text }]);
+    // Create the user message first
+    const userMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      text: text,
+    };
+
+    // Immediately show user's message
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
+
     try {
+      console.log("Sending news query:", text);
+
       const data = await askNews(text);
-      setMessages((items) => [
-        ...items,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          text: data.answer,
-          sources: data.articles || [],
-        },
-      ]);
+
+      console.log("News API response:", data);
+
+      const assistantMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        text:
+          data?.answer ||
+          "I received the news response, but there was no answer.",
+        sources: data?.articles || [],
+      };
+
+      // Add assistant response without removing previous messages
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error(error);
-      setMessages((items) => [
-        ...items,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          text: "I couldn't reach the news service. Please make sure the API is running, then try again.",
-        },
-      ]);
+      console.error("NEWS API ERROR:", error);
+
+      const errorMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        text:
+          "I couldn't reach the news service. Please make sure the backend API is running and try again.",
+        sources: [],
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleNewChat = () => {
+    setMessages([]);
+    setIsLoading(false);
+  };
+
   return (
     <div className="app-layout">
-      <Sidebar onNewChat={() => setMessages([])} />
+
+      {/* SIDEBAR */}
+      <Sidebar onNewChat={handleNewChat} />
+
+      {/* MAIN CONTENT */}
       <main className="main-content">
-        <section className={messages.length ? "news-chat active-chat" : "news-chat"}>
-          {!messages.length ? (
+        <section
+          className={
+            messages.length > 0
+              ? "news-chat active-chat"
+              : "news-chat"
+          }
+        >
+
+          {/* =========================
+              WELCOME SCREEN
+          ========================== */}
+          {messages.length === 0 ? (
             <div className="welcome">
-              <div className="eyebrow"><span /> LIVE GLOBAL NEWS</div>
-              <h1>Ask what’s happening <em>anywhere.</em></h1>
-              <p className="welcome-copy">Your daily briefing on the stories shaping the world — from trusted news sources, in one clear conversation.</p>
-              <ChatInput onSend={handleSend} disabled={isLoading} />
-              <div className="starter-list">
-                {starters.map((starter) => <button key={starter} onClick={() => handleSend(starter)}>{starter}<span>↗</span></button>)}
+
+              <div className="eyebrow">
+                <span />
+                LIVE GLOBAL NEWS
               </div>
+
+              <h1>
+                Ask what’s happening <em>anywhere.</em>
+              </h1>
+
+              <p className="welcome-copy">
+                Your daily briefing on the stories shaping the world —
+                from trusted news sources, in one clear conversation.
+              </p>
+
+              <ChatInput
+                onSend={handleSend}
+                disabled={isLoading}
+              />
+
+              <div className="starter-list">
+                {starters.map((starter) => (
+                  <button
+                    key={starter}
+                    onClick={() => handleSend(starter)}
+                    disabled={isLoading}
+                  >
+                    {starter}
+                    <span>↗</span>
+                  </button>
+                ))}
+              </div>
+
             </div>
           ) : (
+
+            /* =========================
+               CHAT SCREEN
+            ========================== */
             <>
-              <header className="chat-header"><div><span className="live-dot" />Live news desk</div><p>Updated from current reporting</p></header>
-              <ChatWindow messages={messages} isLoading={isLoading} />
-              <ChatInput onSend={handleSend} disabled={isLoading} compact />
+              <header className="chat-header">
+                <div>
+                  <span className="live-dot" />
+                  Live news desk
+                </div>
+
+                <p>
+                  Updated from current reporting
+                </p>
+              </header>
+
+              <ChatWindow
+                messages={messages}
+                isLoading={isLoading}
+              />
+
+              <ChatInput
+                onSend={handleSend}
+                disabled={isLoading}
+                compact
+              />
             </>
           )}
+
         </section>
       </main>
     </div>
