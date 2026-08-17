@@ -12,4 +12,3 @@ pdfplumber
 pydantic
 pytest
 langchain-text-splitters
-sentence-transformers

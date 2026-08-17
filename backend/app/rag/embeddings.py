@@ -1,44 +1,27 @@
-from sentence_transformers import SentenceTransformer
-
-_model = None
-
-
-def get_model():
-
-    global _model
-
-    if _model is None:
-
-        print(
-            "Loading embedding model..."
-        )
-
-        _model = SentenceTransformer(
-            "all-MiniLM-L6-v2"
-        )
-
-    return _model
+from openai import OpenAI
+import os
 
 
-def create_embeddings(
-    chunks
-):
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
-    model = get_model()
 
-    return model.encode(
-        chunks,
-        convert_to_numpy=True
+def create_embeddings(chunks):
+
+    response = client.embeddings.create(
+        model="text-embedding-3-small",
+        input=chunks
     )
 
+    return [item.embedding for item in response.data]
 
-def create_query_embedding(
-    query
-):
 
-    model = get_model()
+def create_query_embedding(query):
 
-    return model.encode(
-        query,
-        convert_to_numpy=True
+    response = client.embeddings.create(
+        model="text-embedding-3-small",
+        input=query
     )
+
+    return response.data[0].embedding
