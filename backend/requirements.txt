@@ -11,3 +11,4 @@ pymupdf
 pdfplumber
 pydantic
 pytest
+langchain-text-splitters
